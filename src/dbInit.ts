@@ -7,37 +7,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 	storage: 'database.sqlite',
 });
 
-export interface UsersAttributes {
-	user_id: string
-	balance: number
-}
-
-export class Users extends Sequelize.Model<UsersAttributes> implements UsersAttributes {
-	user_id!: string
-	balance!: number
-	addItem: (item: any) => Promise<any>;
-	getItems: () => any;
-}
-
-Users.init(
-	{
-		user_id: {
-			type: Sequelize.DataTypes.STRING,
-			primaryKey: true,
-		},
-		balance: {
-			type: Sequelize.DataTypes.INTEGER,
-			defaultValue: 0,
-			allowNull: false,
-		},
-	},
-	{
-		sequelize,
-	}
-)
-
-const CurrencyShop = require('./models/CurrencyShop.js')(sequelize, Sequelize.DataTypes);
-require('./models/UserItems.js')(sequelize, Sequelize.DataTypes);
+const CurrencyShop = require('./models/CurrencyShop.js')(sequelize);
+require('./models/UserItems.js')(sequelize);
 
 const force = process.argv.includes('--force') || process.argv.includes('-f');
 
