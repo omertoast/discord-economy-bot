@@ -7,15 +7,18 @@ class Currency extends Collection<string, User> {
     super()
   }
   static async check(id: string): Promise<User> {
-    let user = currency.get(id)
+    const user = currency.get(id)
 
     if (!user) {
-      return user = await prisma.user.create({
+      const newUser = await prisma.user.create({
         data: {
           id: id,
           balance: 1.00
         }
       })
+      currency.set(id, newUser)
+
+      return newUser
     }
 
     return user

@@ -35,7 +35,7 @@ client.once('ready', async () => {
 
 client.on('message', async (message: Message) => {
 	if (message.author.bot) return
-	//currency.add(message.author.id, 1.00)
+	currency.add(message.author.id, 1.00)
 	if (!message.content.startsWith(PREFIX)) return
 
 	const args = message.content.slice(PREFIX.length).trim().split(/ +/)
