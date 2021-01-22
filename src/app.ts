@@ -1,5 +1,3 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
 import { PrismaClient, User } from '@prisma/client'
 import { Message, Client } from 'discord.js'
 import { currency } from './helpers/currency'
@@ -10,7 +8,7 @@ export const prisma = new PrismaClient()
 const client = new Client()
 const PREFIX = '!'
 
-const commandFiles = readdirSync('src/commands')
+const commandFiles = readdirSync('./commands')
 
 export interface Command {
   name: string,
