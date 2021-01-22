@@ -1,4 +1,5 @@
-const config = require('../config');
+import * as dotenv from 'dotenv'
+dotenv.config()
 import { PrismaClient, User } from '@prisma/client'
 import { Message, Client } from 'discord.js'
 import { currency } from './helpers/currency'
@@ -53,4 +54,4 @@ client.on('message', async (message: Message) => {
 	}
 })
 
-client.login(config.token)
+client.login(process.env.TOKEN)
