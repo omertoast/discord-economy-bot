@@ -1,14 +1,27 @@
-FROM node:15.6.0-alpine3.10
+FROM node:15.6.0-alpine3.10 as builder
 
 WORKDIR /usr/app
-COPY package*.json ./
-RUN npm ci
 
 COPY . .
+RUN npm ci
 
 RUN npx prisma generate
 RUN npm run build
 
-WORKDIR /usr/app/dist/
+FROM node:15.6.0-alpine3.10
 
-CMD ["node", "app.js"]
+WORKDIR /usr/app
+
+ENV NODE_ENV=production
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY --from=builder /usr/app/dist ./dist
+COPY --from=builder /usr/app/prisma ./prisma
+
+RUN npx prisma generate
+
+WORKDIR /usr/app/dist
+
+CMD [ "node", "app.js"]
