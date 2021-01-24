@@ -37,4 +37,4 @@ jobs:
       run: npx tsc
 
     - name: Build and push Docker images
-      run: docker build omrtozd/discord-economy-bot .
+      run: docker build -t omrtozd/discord-economy-bot:latest .
