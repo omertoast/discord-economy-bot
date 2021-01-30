@@ -29,7 +29,7 @@ for (const file of commandFiles) {
 client.once('ready', async () => {
 	const storedBalances = await prisma.user.findMany()
 	storedBalances.forEach(user => currency.set(user.id, user))
-	console.log(`Logged in as ${client.user.tag}!`)
+	console.log(`Logged in as ${client.user!.tag}!`)
 })
 
 client.on('message', async (message: Message) => {
@@ -38,11 +38,11 @@ client.on('message', async (message: Message) => {
 	if (!message.content.startsWith(PREFIX)) return
 
 	const args = message.content.slice(PREFIX.length).trim().split(/ +/)
-	const commandName = args.shift().toLowerCase()
+	const commandName = args.shift()!.toLowerCase()
 
 	if (!commands.has(commandName)) return
 
-	const command = commands.get(commandName)
+	const command = commands.get(commandName)!
 
 	try {
 		command.execute(message, args)
