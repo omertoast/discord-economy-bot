@@ -1,48 +1,74 @@
-import { PrismaClient, User } from '@prisma/client'
-import { Message, Client } from 'discord.js'
-import { currency } from './helpers/currency'
+import { PrismaClient } from '@prisma/client'
+import { Message, Client, Command } from 'discord.js'
 import { readdirSync } from 'fs'
 import { Collection } from 'discord.js';
+import Redis from 'ioredis'
+
+import './structures/ExtendedMember'
+import './structures/ExtendedMessage'
 
 export const prisma = new PrismaClient()
-const client = new Client()
+export const redis = new Redis(process.env.REDIS_DATABASE_URL) 
+export const client = new Client()
 const PREFIX = '!'
 
+// Get commands from commands file
 const commandFiles = readdirSync('./commands')
 
-export interface Command {
-  name: string,
-  description: string,
-  args: boolean,
-  guildOnly: boolean,
-  usage?: string
-  execute: (message: Message, args: string[]) => any
-}
-
+// Create a collection for commands
 const commands = new Collection<string, Command>()
 
+// Set commands 
 for (const file of commandFiles) {
 	const command: Command = require(`./commands/${file}`)
 	commands.set(command.name, command)
 }
 
+// Start the bot
 client.once('ready', async () => {
-	const storedBalances = await prisma.user.findMany()
-	storedBalances.forEach(user => currency.set(user.id, user))
+	redis.flushall()
+
+	client.guilds.cache.forEach(async guild => {
+		await prisma.guild.upsert({
+			where: {id: guild.id},
+			update: {},
+			create: {id: guild.id}
+		})
+	})
+
+	const storedBalances = await prisma.member.findMany()
+
+  const pipeline = redis.pipeline()
+  storedBalances.forEach(user => pipeline.zadd(user.memberGuildId, user.balance, user.id))
+	await pipeline.exec().catch(err => console.log(err))
+
 	console.log(`Logged in as ${client.user!.tag}!`)
 })
 
 client.on('message', async (message: Message) => {
+	// TO-DO
+	// Add cooldown to commands
+	// Allow users to use commands only in specific channels
+
+	// Filter Messages
 	if (message.author.bot) return
-	currency.add(message.author.id, 1.00)
+	if (message.channel.type == 'dm') return
+
+	// Give money to user per message
+	await message.member!.addBalance(1.00)
+
+	// Check if the message is an attempt to run a command or not (check the prefix)
 	if (!message.content.startsWith(PREFIX)) return
 
+	// Seperate command args from commands by making an args array
 	const args = message.content.slice(PREFIX.length).trim().split(/ +/)
+
+	// Seperate the name of the command that user trying to use
 	const commandName = args.shift()!.toLowerCase()
 
-	if (!commands.has(commandName)) return
-
-	const command = commands.get(commandName)!
+	// Check if the command or command aliase exist
+	const command = commands.get(commandName) || commands.find(cmd => cmd.aliases! && cmd.aliases.includes(commandName))
+	if (!command) return
 
 	try {
 		command.execute(message, args)

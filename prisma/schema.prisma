@@ -1,39 +1,74 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["createMany"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("SQL_DATABASE_URL")
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+model Guild {
+  id          String     @id
+  guildMember Member[]
+  guildItem   Item[]
+  ShopItem    ShopItem[]
+}
+
+model Member {
+  id            String
+  balance       Float
+  joinedAt      DateTime   @default(now())
+  memberGuildId String
+  memberItem    UserItem[]
+
+
+  Guild Guild @relation(fields: [memberGuildId], references: [id])
+  @@id([id, memberGuildId])
+  @@unique([id, memberGuildId])
 }
 
 model Item {
-  id       Int        @id
-  name     String
-  type     Int
-  ShopItem ShopItem?
-  UserItem UserItem[]
+  id          Int @default(autoincrement())
+  name        String
+  description String
+  type        Int
+  args        String
+  itemGuildId String
+  ShopItem    ShopItem?
+  UserItem    UserItem[]
+
+
+  Guild Guild @relation(fields: [itemGuildId], references: [id])
+  @@id([id, itemGuildId])
+  @@unique([id, itemGuildId])
 }
 
 model ShopItem {
-  price  Int
-  amount Int
-  itemId Int  @id
-  Item   Item @relation(fields: [itemId], references: [id])
-}
+  price   Int
+  amount  Int
+  itemId  Int
+  guildId String
 
-model User {
-  id       String     @id
-  balance  Float
-  UserItem UserItem[]
+
+  Guild Guild @relation(fields: [guildId], references: [id])
+  Item  Item  @relation(fields: [itemId, guildId], references: [id, itemGuildId])
+  @@id([itemId, guildId])
 }
 
 model UserItem {
-  amount Int
-  itemId Int
-  userId String
-  Item   Item   @relation(fields: [itemId], references: [id])
-  User   User   @relation(fields: [userId], references: [id])
+  amount       Int
+  itemId       Int
+  itemGuildId  String
+  ownerId      String
+  ownerGuildId String
 
-  @@id([itemId, userId])
+
+  Item   Item   @relation(fields: [itemId, itemGuildId], references: [id, itemGuildId])
+  Member Member @relation(fields: [ownerId, ownerGuildId], references: [id, memberGuildId])
+  @@id([itemId, itemGuildId, ownerId, ownerGuildId])
 }

@@ -1,0 +1,80 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Guild {
+  id String [pk]
+  guildMember Member [not null]
+  guildItem Item [not null]
+  ShopItem ShopItem [not null]
+}
+
+Table Member {
+  id String [not null]
+  balance Float [not null]
+  joinedAt DateTime [default: `now()`, not null]
+  memberGuildId String [not null]
+  memberItem UserItem [not null]
+  Guild Guild [not null]
+
+  indexes {
+    (id, memberGuildId) [pk]
+    (id, memberGuildId) [unique]
+  }
+}
+
+Table Item {
+  id Int [increment, not null]
+  name String [not null]
+  description String [not null]
+  type Int [not null]
+  args String [not null]
+  itemGuildId String [not null]
+  ShopItem ShopItem
+  UserItem UserItem [not null]
+  Guild Guild [not null]
+
+  indexes {
+    (id, itemGuildId) [pk]
+    (id, itemGuildId) [unique]
+  }
+}
+
+Table ShopItem {
+  price Int [not null]
+  amount Int [not null]
+  itemId Int [not null]
+  guildId String [not null]
+  Guild Guild [not null]
+  Item Item [not null]
+
+  indexes {
+    (itemId, guildId) [pk]
+  }
+}
+
+Table UserItem {
+  amount Int [not null]
+  itemId Int [not null]
+  itemGuildId String [not null]
+  ownerId String [not null]
+  ownerGuildId String [not null]
+  Item Item [not null]
+  Member Member [not null]
+
+  indexes {
+    (itemId, itemGuildId, ownerId, ownerGuildId) [pk]
+  }
+}
+
+Ref: Member.memberGuildId > Guild.id
+
+Ref: Item.itemGuildId > Guild.id
+
+Ref: ShopItem.guildId > Guild.id
+
+Ref: ShopItem.(itemId, guildId) - Item.(id, itemGuildId)
+
+Ref: UserItem.(itemId, itemGuildId) > Item.(id, itemGuildId)
+
+Ref: UserItem.(ownerId, ownerGuildId) > Member.(id, memberGuildId)

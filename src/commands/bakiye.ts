@@ -1,14 +1,20 @@
-import { currency } from '../helpers/currency'
-import { Command } from '../app'
+import { client, redis } from '../app'
+import { MessageEmbed, Command } from 'discord.js'
 
 const command: Command = {
   name: 'bakiye',
   description: 'Kaç GISK\'e sahip olduğunuzu görebilmenizi sağlar.',
   args: false,
-  guildOnly: false,
   async execute(message) {
-    const target = message.mentions.users.first() || message.author
-    return message.channel.send(`${target} has ${(await currency.getBalance(target.id)).toString()} GISK 💰`)
+    const cash = (await message.mauthor.getBalance()).toString() 
+    const rank = await message.mauthor.getRank()
+    const embed = new MessageEmbed() 
+      .setDescription(`Leaderboard Rank: ${rank}`)
+      .setAuthor(message.author.username , message.author.avatarURL()!)
+      .setColor('BLUE')
+      .addField('Bakiye:', `${cash} GISK`)
+      .setTimestamp()
+    return message.channel.send({embed})
   }
 }
 

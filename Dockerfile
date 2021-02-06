@@ -5,7 +5,6 @@ WORKDIR /usr/app
 COPY . .
 RUN npm ci
 
-RUN npx prisma generate
 RUN npm run build
 
 FROM node:15.6.0-alpine3.10
@@ -20,7 +19,7 @@ RUN npm ci --only=production
 COPY --from=builder /usr/app/dist ./dist
 COPY --from=builder /usr/app/prisma ./prisma
 
-RUN npx prisma generate
+RUN npm run prisma:generate
 
 WORKDIR /usr/app/dist
 
